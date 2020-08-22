@@ -32,7 +32,7 @@ class SplashActivity : AppCompatActivity() {
 
     }
 
-    fun processTest(testType: TestType) {
+    private fun processTest(testType: TestType) {
         when (testType) {
             TestType.NORMAL_RUN_WITH_ETC_MESSAGE -> {
                 val processRemoteConfig1 =
