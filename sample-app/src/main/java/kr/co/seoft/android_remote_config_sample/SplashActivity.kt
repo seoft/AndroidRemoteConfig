@@ -27,7 +27,7 @@ class SplashActivity : AppCompatActivity() {
         /**
          * set here if run each case
          */
-        val testType = TestType.NORMAL_RUN_WITH_ETC_MESSAGE
+        val testType = TestType.WHEN_VERSION_IS_LOW
         processTest(testType)
 
     }

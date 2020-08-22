@@ -1,6 +1,6 @@
 {
   "version": null,
-  "message": null,
+  "message": "Set here normal message",
   "run": true,
   "etc": "Set here etc message if you need"
 }
