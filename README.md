@@ -5,7 +5,7 @@
 
 ## AndroidRemoteConfig ?
 
-It is recommended to use when you need to prepare simply without setting up the firebase console, or when you need to avoid the limitation of one time for 12 hours, which is the remote configuration specification of Firebase.
+It is recommended to use when you need to prepare simply without setting up the firebase console, or when you need to avoid the remote configuration limitation specification of Firebase.
 
 However, firebase is more efficient if you need a complex configuration, use firebase's detailed features, or do not have a server that is guaranteed to run 24 hours a day, 365 days a year.
 
