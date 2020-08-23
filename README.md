@@ -1,6 +1,4 @@
-[![Release](https://jitpack.io/v/seoft/AndroidRemoteConfig.svg)]
-(https://jitpack.io/#seoft/AndroidRemoteConfig)
-
+[![](https://jitpack.io/v/seoft/AndroidRemoteConfig.svg)](https://jitpack.io/#seoft/AndroidRemoteConfig)
 
 
 ## AndroidRemoteConfig ?
@@ -27,6 +25,15 @@ allprojects {
 And add next dependencies in the build.gradle of the module:
 
 ```gradle
+android {
+	/// ...
+
+	compileOptions {
+        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_1_8
+    }
+}
+
 dependencies {
     implementation 'com.github.seoft:AndroidRemoteConfig:0.9.1'
 }
