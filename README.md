@@ -28,7 +28,7 @@ And add next dependencies in the build.gradle of the module:
 
 ```gradle
 dependencies {
-    implementation 'com.github.seoft:AndroidRemoteConfig:0.9.0'
+    implementation 'com.github.seoft:AndroidRemoteConfig:0.9.1'
 }
 ```
 
