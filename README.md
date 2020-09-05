@@ -28,7 +28,7 @@ And add next dependencies in the build.gradle of the module:
 android {
 	/// ...
 
-	compileOptions {
+    compileOptions {
         targetCompatibility = JavaVersion.VERSION_1_8
         sourceCompatibility = JavaVersion.VERSION_1_8
     }
