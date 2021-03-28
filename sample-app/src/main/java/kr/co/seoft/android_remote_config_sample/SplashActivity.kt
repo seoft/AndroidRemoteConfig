@@ -5,8 +5,12 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.schedulers.Schedulers
 import kr.co.seoft.android_remote_config.OnRemoteConfigListener
 import kr.co.seoft.android_remote_config.ProcessRemoteConfig
+import kr.co.seoft.android_remote_config.RemoteConfigResult
 
 class SplashActivity : AppCompatActivity() {
 
@@ -17,8 +21,11 @@ class SplashActivity : AppCompatActivity() {
     enum class TestType {
         NORMAL_RUN_WITH_ETC_MESSAGE,
         BLOCK_LAUNCH_APP,
-        WHEN_VERSION_IS_LOW
+        WHEN_VERSION_IS_LOW,
+        RX_SINGLE
     }
+
+    private val compositeDisposable = CompositeDisposable()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,7 +34,7 @@ class SplashActivity : AppCompatActivity() {
         /**
          * set here if run each case
          */
-        val testType = TestType.WHEN_VERSION_IS_LOW
+        val testType = TestType.RX_SINGLE
         processTest(testType)
 
     }
@@ -109,6 +116,49 @@ class SplashActivity : AppCompatActivity() {
                     }
                 })
             }
+            TestType.RX_SINGLE -> {
+
+                // Same url to processRemoteConfig1
+                val processRemoteConfig4 =
+                    ProcessRemoteConfig.Builder("https://raw.githubusercontent.com/seoft/AndroidRemoteConfig/dev/json_for_test/normal_run_with_etc_message.json")
+                        .isDebug(true)
+                        .requestTimeoutSecond(30)
+                        .versionCode(BuildConfig.VERSION_CODE)
+                        .build()
+
+                processRemoteConfig4.createRxSingleRemoteConfig()
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe({
+                        it.run {
+                            when (this) {
+                                is RemoteConfigResult.Run -> {
+                                    Log.d(TAG, "onRun $message $etc")
+                                    startActivity(Intent(baseContext, MainActivity::class.java))
+                                    finish()
+                                }
+                                is RemoteConfigResult.LowVersion -> {
+                                    Log.d(TAG, "onLowVersion $message $etc")
+                                    // message is "Get a new version from the Play Store"
+                                    Toast.makeText(baseContext, message, Toast.LENGTH_LONG).show()
+                                    finish()
+                                }
+                                is RemoteConfigResult.Block -> {
+                                    Log.d(TAG, "onBlock $message $etc")
+                                    Toast.makeText(baseContext, message, Toast.LENGTH_LONG).show()
+                                    finish()
+                                }
+                            }
+                        }
+                    }, {
+                        it.printStackTrace()
+                    })
+            }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        compositeDisposable.dispose()
     }
 }

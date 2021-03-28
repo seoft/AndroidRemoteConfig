@@ -242,6 +242,43 @@ processRemoteConfig3.requestRemoteConfig(object : OnRemoteConfigListener {
 
 
 
+##### 4. using RxJava
+
+```kotlin
+//https://raw.githubusercontent.com/seoft/AndroidRemoteConfig/dev/json_for_test/when_version_is_low.json
+
+processRemoteConfig4.createRxSingleRemoteConfig()
+    .subscribeOn(Schedulers.io())
+    .observeOn(AndroidSchedulers.mainThread())
+    .subscribe({
+        it.run {
+            when (this) {
+                is RemoteConfigResult.Run -> {
+                    Log.d(TAG, "onRun $message $etc")
+                    startActivity(Intent(baseContext, MainActivity::class.java))
+                    finish()
+                }
+                is RemoteConfigResult.LowVersion -> {
+                    Log.d(TAG, "onLowVersion $message $etc")
+                    // message is "Get a new version from the Play Store"
+                    Toast.makeText(baseContext, message, Toast.LENGTH_LONG).show()
+                    finish()
+                }
+                is RemoteConfigResult.Block -> {
+                    Log.d(TAG, "onBlock $message $etc")
+                    Toast.makeText(baseContext, message, Toast.LENGTH_LONG).show()
+                    finish()
+                }
+            }
+        }
+    }, {
+        it.printStackTrace()
+    })
+})
+```
+
+
+
 
 
 ### 4. After

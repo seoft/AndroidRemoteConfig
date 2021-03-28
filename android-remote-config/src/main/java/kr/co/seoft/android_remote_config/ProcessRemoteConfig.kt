@@ -2,6 +2,7 @@ package kr.co.seoft.android_remote_config
 
 import android.util.Log
 import com.google.gson.GsonBuilder
+import io.reactivex.Single
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Call
@@ -83,6 +84,68 @@ class ProcessRemoteConfig private constructor(private val builder: Builder) {
             })
 
     }
+
+    fun createRxSingleRemoteConfig(): Single<RemoteConfigResult> {
+
+        val retrofit = Retrofit.Builder()
+            .baseUrl("https://this.is.not.used.dummy.text")
+            .client(getOkHttp())
+            .addConverterFactory(GsonConverterFactory.create(GsonBuilder().setLenient().create()))
+            .build()
+
+        return Single.create<RemoteConfigResult> { emitter ->
+            retrofit.create(RemoteConfigApi::class.java).getRemoteConfig(builder.url)
+                .enqueue(object : Callback<RemoteConfig> {
+                    override fun onFailure(call: Call<RemoteConfig>, t: Throwable) {
+                        emitter.onError(t)
+                        if (builder.isDebug) Log.e(TAG, t.message ?: return)
+                    }
+
+                    override fun onResponse(
+                        call: Call<RemoteConfig>,
+                        response: Response<RemoteConfig>
+                    ) {
+                        val nonNullRemoteConfig = response.body() ?: let {
+                            if (builder.isDebug) {
+                                Log.e(TAG, "response body is null")
+                            }
+                            return@onResponse
+                        }
+
+                        val immutableVersionCode = builder.versionCode
+
+                        when {
+                            (nonNullRemoteConfig.version != null && immutableVersionCode != null &&
+                                    nonNullRemoteConfig.version > immutableVersionCode) -> {
+                                emitter.onSuccess(
+                                    RemoteConfigResult.LowVersion(
+                                        nonNullRemoteConfig.message,
+                                        nonNullRemoteConfig.etc
+                                    )
+                                )
+                            }
+                            nonNullRemoteConfig.run -> {
+                                emitter.onSuccess(
+                                    RemoteConfigResult.Run(
+                                        nonNullRemoteConfig.message,
+                                        nonNullRemoteConfig.etc
+                                    )
+                                )
+                            }
+                            else -> {
+                                emitter.onSuccess(
+                                    RemoteConfigResult.Block(
+                                        nonNullRemoteConfig.message,
+                                        nonNullRemoteConfig.etc
+                                    )
+                                )
+                            }
+                        }
+                    }
+                })
+        }
+    }
+
 
     // Builder pattern ref : https://www.baeldung.com/kotlin-builder-pattern
     class Builder(val url: String) {
