@@ -1,7 +1,8 @@
 package kr.co.seoft.android_remote_config
 
-sealed class RemoteConfigResult(val message: String?, val etc: String?) {
-    class Run(message: String?, etc: String?) : RemoteConfigResult(message, etc)
-    class Block(message: String?, etc: String?) : RemoteConfigResult(message, etc)
-    class LowVersion(message: String?, etc: String?) : RemoteConfigResult(message, etc)
+sealed class RemoteConfigResult {
+    class Run(val message: String?, val etc: String?) : RemoteConfigResult()
+    class Block(val message: String?, val etc: String?) : RemoteConfigResult()
+    class LowVersion(val message: String?, val etc: String?) : RemoteConfigResult()
+    class Fail(val throwable: Throwable) : RemoteConfigResult()
 }

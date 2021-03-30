@@ -269,6 +269,10 @@ processRemoteConfig4.createRxSingleRemoteConfig()
                     Toast.makeText(baseContext, message, Toast.LENGTH_LONG).show()
                     finish()
                 }
+                is RemoteConfigResult.Fail -> {
+                    // try when failed
+                    this.throwable.printStackTrace()
+                }
             }
         }
     }, {

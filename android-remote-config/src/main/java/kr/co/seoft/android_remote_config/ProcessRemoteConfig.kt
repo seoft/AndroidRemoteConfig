@@ -97,7 +97,7 @@ class ProcessRemoteConfig private constructor(private val builder: Builder) {
             retrofit.create(RemoteConfigApi::class.java).getRemoteConfig(builder.url)
                 .enqueue(object : Callback<RemoteConfig> {
                     override fun onFailure(call: Call<RemoteConfig>, t: Throwable) {
-                        emitter.onError(t)
+                        emitter.onSuccess(RemoteConfigResult.Fail(t))
                         if (builder.isDebug) Log.e(TAG, t.message ?: return)
                     }
 
@@ -106,9 +106,8 @@ class ProcessRemoteConfig private constructor(private val builder: Builder) {
                         response: Response<RemoteConfig>
                     ) {
                         val nonNullRemoteConfig = response.body() ?: let {
-                            if (builder.isDebug) {
-                                Log.e(TAG, "response body is null")
-                            }
+                            if (builder.isDebug) Log.e(TAG, "response body is null")
+                            emitter.onSuccess(RemoteConfigResult.Fail(Exception("response body is null")))
                             return@onResponse
                         }
 
@@ -153,7 +152,7 @@ class ProcessRemoteConfig private constructor(private val builder: Builder) {
         var isDebug: Boolean = false
             private set
 
-        var requestTimeoutSecond: Int = 30
+        var requestTimeoutSecond: Int = 10
             private set
 
         var versionCode: Int? = null
@@ -162,6 +161,7 @@ class ProcessRemoteConfig private constructor(private val builder: Builder) {
         fun isDebug(isDebug: Boolean) = apply { this.isDebug = isDebug }
         fun requestTimeoutSecond(requestTimeoutSecond: Int) =
             apply { this.requestTimeoutSecond = requestTimeoutSecond }
+
         fun versionCode(versionCode: Int) = apply { this.versionCode = versionCode }
         fun build() = ProcessRemoteConfig(this)
     }
