@@ -35,7 +35,7 @@ android {
 }
 
 dependencies {
-    implementation 'com.github.seoft:AndroidRemoteConfig:0.9.1'
+    implementation 'com.github.seoft:AndroidRemoteConfig:0.9.4'
 }
 ```
 
