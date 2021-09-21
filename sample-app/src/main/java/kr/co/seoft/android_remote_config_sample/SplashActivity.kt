@@ -8,6 +8,9 @@ import androidx.appcompat.app.AppCompatActivity
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kr.co.seoft.android_remote_config.OnRemoteConfigListener
 import kr.co.seoft.android_remote_config.ProcessRemoteConfig
 import kr.co.seoft.android_remote_config.RemoteConfigResult
@@ -22,7 +25,8 @@ class SplashActivity : AppCompatActivity() {
         NORMAL_RUN_WITH_ETC_MESSAGE,
         BLOCK_LAUNCH_APP,
         WHEN_VERSION_IS_LOW,
-        RX_SINGLE
+        RX_SINGLE,
+        COROUTINE
     }
 
     private val compositeDisposable = CompositeDisposable()
@@ -34,11 +38,12 @@ class SplashActivity : AppCompatActivity() {
         /**
          * set here if run each case
          */
-        val testType = TestType.RX_SINGLE
+        val testType = TestType.COROUTINE
         processTest(testType)
 
     }
 
+    @DelicateCoroutinesApi
     private fun processTest(testType: TestType) {
         when (testType) {
             TestType.NORMAL_RUN_WITH_ETC_MESSAGE -> {
@@ -126,7 +131,7 @@ class SplashActivity : AppCompatActivity() {
                         .versionCode(BuildConfig.VERSION_CODE)
                         .build()
 
-                processRemoteConfig4.createRxSingleRemoteConfig()
+                val disposable = processRemoteConfig4.createRxSingleRemoteConfig()
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe({
@@ -157,6 +162,41 @@ class SplashActivity : AppCompatActivity() {
                     }, {
                         it.printStackTrace()
                     })
+            }
+            TestType.COROUTINE -> {
+                val processRemoteConfig5 =
+                    ProcessRemoteConfig.Builder("https://raw.githubusercontent.com/seoft/AndroidRemoteConfig/dev/json_for_test/normal_run_with_etc_message.json")
+                        .isDebug(true)
+                        .requestTimeoutSecond(30)
+                        .versionCode(BuildConfig.VERSION_CODE)
+                        .build()
+
+                GlobalScope.launch {
+                    processRemoteConfig5.createCoroutineRemoteConfig().run{
+                        when (this) {
+                            is RemoteConfigResult.Run -> {
+                                Log.d(TAG, "onRun $message $etc")
+                                startActivity(Intent(baseContext, MainActivity::class.java))
+                                finish()
+                            }
+                            is RemoteConfigResult.LowVersion -> {
+                                Log.d(TAG, "onLowVersion $message $etc")
+                                // message is "Get a new version from the Play Store"
+                                Toast.makeText(baseContext, message, Toast.LENGTH_LONG).show()
+                                finish()
+                            }
+                            is RemoteConfigResult.Block -> {
+                                Log.d(TAG, "onBlock $message $etc")
+                                Toast.makeText(baseContext, message, Toast.LENGTH_LONG).show()
+                                finish()
+                            }
+                            is RemoteConfigResult.Fail -> {
+                                // try when failed
+                                this.throwable.printStackTrace()
+                            }
+                        }
+                    }
+                }
             }
         }
     }
