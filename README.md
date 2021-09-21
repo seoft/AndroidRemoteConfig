@@ -35,7 +35,7 @@ android {
 }
 
 dependencies {
-    implementation 'com.github.seoft:AndroidRemoteConfig:0.9.4'
+    implementation 'com.github.seoft:AndroidRemoteConfig:0.9.5'
 }
 ```
 
@@ -279,6 +279,42 @@ processRemoteConfig4.createRxSingleRemoteConfig()
         it.printStackTrace()
     })
 })
+```
+
+
+
+##### 5. using Coroutine
+
+```kotlin
+//https://raw.githubusercontent.com/seoft/AndroidRemoteConfig/dev/json_for_test/when_version_is_low.json
+
+// Set up the scope you need
+GlobalScope.launch {
+    processRemoteConfig5.createCoroutineRemoteConfig().run {
+        when (this) {
+            is RemoteConfigResult.Run -> {
+                Log.d(TAG, "onRun $message $etc")
+                startActivity(Intent(baseContext, MainActivity::class.java))
+                finish()
+            }
+            is RemoteConfigResult.LowVersion -> {
+                Log.d(TAG, "onLowVersion $message $etc")
+                // message is "Get a new version from the Play Store"
+                Toast.makeText(baseContext, message, Toast.LENGTH_LONG).show()
+                finish()
+            }
+            is RemoteConfigResult.Block -> {
+                Log.d(TAG, "onBlock $message $etc")
+                Toast.makeText(baseContext, message, Toast.LENGTH_LONG).show()
+                finish()
+            }
+            is RemoteConfigResult.Fail -> {
+                // try when failed
+                this.throwable.printStackTrace()
+            }
+        }
+    }
+}
 ```
 
 

@@ -172,7 +172,7 @@ class SplashActivity : AppCompatActivity() {
                         .build()
 
                 GlobalScope.launch {
-                    processRemoteConfig5.createCoroutineRemoteConfig().run{
+                    processRemoteConfig5.createCoroutineRemoteConfig().run {
                         when (this) {
                             is RemoteConfigResult.Run -> {
                                 Log.d(TAG, "onRun $message $etc")
