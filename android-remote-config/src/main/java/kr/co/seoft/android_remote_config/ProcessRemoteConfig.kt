@@ -1,6 +1,5 @@
 package kr.co.seoft.android_remote_config
 
-import android.util.Log
 import com.google.gson.GsonBuilder
 import io.reactivex.Single
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -13,6 +12,10 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.resume
+
+private fun printErrorLog(tag: String, message: String) {
+    println("${tag}::${message}")
+}
 
 class ProcessRemoteConfig private constructor(private val builder: Builder) {
 
@@ -45,7 +48,7 @@ class ProcessRemoteConfig private constructor(private val builder: Builder) {
             .enqueue(object : Callback<RemoteConfig> {
                 override fun onFailure(call: Call<RemoteConfig>, t: Throwable) {
                     onRemoteConfigListener.onResponseFail(t)
-                    if (builder.isDebug) Log.e(TAG, t.message ?: return)
+                    if (builder.isDebug) printErrorLog(TAG, t.message ?: return)
                 }
 
                 override fun onResponse(
@@ -54,7 +57,7 @@ class ProcessRemoteConfig private constructor(private val builder: Builder) {
                 ) {
                     val nonNullRemoteConfig = response.body() ?: let {
                         if (builder.isDebug) {
-                            Log.e(TAG, "response body is null")
+                            printErrorLog(TAG, "response body is null")
                         }
                         return@onResponse
                     }
@@ -69,12 +72,14 @@ class ProcessRemoteConfig private constructor(private val builder: Builder) {
                                 nonNullRemoteConfig.etc
                             )
                         }
+
                         nonNullRemoteConfig.run -> {
                             onRemoteConfigListener.onRun(
                                 nonNullRemoteConfig.message,
                                 nonNullRemoteConfig.etc
                             )
                         }
+
                         else -> {
                             onRemoteConfigListener.onBlock(
                                 nonNullRemoteConfig.message,
@@ -100,7 +105,7 @@ class ProcessRemoteConfig private constructor(private val builder: Builder) {
                 .enqueue(object : Callback<RemoteConfig> {
                     override fun onFailure(call: Call<RemoteConfig>, t: Throwable) {
                         emitter.onSuccess(RemoteConfigResult.Fail(t))
-                        if (builder.isDebug) Log.e(TAG, t.message ?: return)
+                        if (builder.isDebug) printErrorLog(TAG, t.message ?: return)
                     }
 
                     override fun onResponse(
@@ -108,7 +113,7 @@ class ProcessRemoteConfig private constructor(private val builder: Builder) {
                         response: Response<RemoteConfig>
                     ) {
                         val nonNullRemoteConfig = response.body() ?: let {
-                            if (builder.isDebug) Log.e(TAG, "response body is null")
+                            if (builder.isDebug) printErrorLog(TAG, "response body is null")
                             emitter.onSuccess(RemoteConfigResult.Fail(Exception("response body is null")))
                             return@onResponse
                         }
@@ -125,6 +130,7 @@ class ProcessRemoteConfig private constructor(private val builder: Builder) {
                                     )
                                 )
                             }
+
                             nonNullRemoteConfig.run -> {
                                 emitter.onSuccess(
                                     RemoteConfigResult.Run(
@@ -133,6 +139,7 @@ class ProcessRemoteConfig private constructor(private val builder: Builder) {
                                     )
                                 )
                             }
+
                             else -> {
                                 emitter.onSuccess(
                                     RemoteConfigResult.Block(
@@ -160,7 +167,7 @@ class ProcessRemoteConfig private constructor(private val builder: Builder) {
                     .enqueue(object : Callback<RemoteConfig> {
                         override fun onFailure(call: Call<RemoteConfig>, t: Throwable) {
                             continuation.resume(RemoteConfigResult.Fail(t))
-                            if (builder.isDebug) Log.e(TAG, t.message ?: return)
+                            if (builder.isDebug) printErrorLog(TAG, t.message ?: return)
                         }
 
                         override fun onResponse(
@@ -168,7 +175,7 @@ class ProcessRemoteConfig private constructor(private val builder: Builder) {
                             response: Response<RemoteConfig>
                         ) {
                             val nonNullRemoteConfig = response.body() ?: let {
-                                if (builder.isDebug) Log.e(TAG, "response body is null")
+                                if (builder.isDebug) printErrorLog(TAG, "response body is null")
                                 continuation.resume(RemoteConfigResult.Fail(Exception("response body is null")))
                                 return@onResponse
                             }
@@ -184,6 +191,7 @@ class ProcessRemoteConfig private constructor(private val builder: Builder) {
                                         )
                                     )
                                 }
+
                                 nonNullRemoteConfig.run -> {
                                     continuation.resume(
                                         RemoteConfigResult.Run(
@@ -192,6 +200,7 @@ class ProcessRemoteConfig private constructor(private val builder: Builder) {
                                         )
                                     )
                                 }
+
                                 else -> {
                                     continuation.resume(
                                         RemoteConfigResult.Block(
